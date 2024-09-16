@@ -1,0 +1,5 @@
+# for baseline OCR
+pytesseract
+
+# for data manipulations
+Pillow
