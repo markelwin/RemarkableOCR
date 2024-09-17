@@ -1,4 +1,4 @@
-from remarkable.base.core.lightweight_utilities.utils import utils
+from remarkable.base.core.lightweight_utilities.utils import utils, CONSTANTS
 from remarkable.base.core.lightweight_utilities.colors import ColorUtils, colors
 from PIL import Image, ImageDraw
 import statistics
@@ -31,9 +31,9 @@ class RemarkableOCR(object):
         data = pytesseract.image_to_data(Image.open(tmp.name))  # if this fails, we throw
 
         # There is only one data value that breaks convention with pytesseract which is our use of confidence as a
-        # number between 0 and 1 instead of 0 and 100. We require calculate_advanced_metadata to not alter the data
+        # number between 0 and 1 instead of 0 and 100. We require enrich_advanced_metadata to not alter the data
         # in a way in which successful calls cannot be made (i.e., user may filter tokens and recalculate safely).
-        # For that reason we keep separate the intrinsic per-token adjustments from the calculate_advanced_metadata.
+        # For that reason we keep separate the intrinsic per-token adjustments from the enrich_advanced_metadata.
         data = [d.split("\t") for d in data.split("\n")]
         data = [{data[0][k]:data[i][k] for k in range(len(data[0]))} for i in range(1,len(data)-1)]
         data = [d for d in data if len(d["text"].strip()) != 0]
@@ -46,10 +46,10 @@ class RemarkableOCR(object):
             d["line_num"], d["word_num"] = int(d["line_num"]), int(d["word_num"])
             d["par_num"], d["block_num"], d["page_num"] = int(d["par_num"]), int(d["block_num"]), int(d["page_num"])
         # calculate advanced metadata and return to user
-        return RemarkableOCR.calculate_advanced_metadata(data, confidence_threshold)
+        return RemarkableOCR.enrich_advanced_metadata(data, confidence_threshold)
 
     @staticmethod
-    def calculate_advanced_metadata(data, confidence_threshold=None):
+    def enrich_advanced_metadata(data, confidence_threshold=None):
         """Improves per-token data for analytics and rendering; distinguishing blocks; filtering low quality"""
         # is_first_in_line, is_last_in_line: boolean, is the token first or last in the line
         # block_left, block_right: pixel leftmost/rightmost edge of block of token; i.e., highlighting an entire block
@@ -87,8 +87,18 @@ class RemarkableOCR(object):
                 current_block = d["block_num"]
             d["absolute_line_number"] = absolute_line_number
 
+            char_lexicon = list(set("".join(d["text"] for d in data)))
+            char_missing = [c for c in char_lexicon if c not in CONSTANTS.known_char_lexicon]
+            if len(char_missing) != 0:
+                logger.info(f"NOTE: unknown characters detected in text. slightly incorrect typography statistics " +\
+                            f"may result. please report the characters={char_missing} in an issue here and we will " +\
+                            f"address this promptly: https://github.com/markelwin/RemarkableOCR/issues")
             d["is_punct"] = all([c in string.punctuation for c in d["text"]])
             d["is_alnum"] = d["text"].isalnum()
+            d["has_unknown_char"] = len(char_missing) == 0
+            d["amt_below_baseline"] = 1.0 if any([c in CONSTANTS.below_baseline_chars for c in d["text"]]) else 0.0
+            d["amt_above_x_height"] = 1.0 if any([c in CONSTANTS.above_x_height_chars for c in d["text"]]) else 0.0
+            d["font_size_pt"] = d["height"] / 16.0 * 12.0  # see note in README.md for its description
         return data
 
     @staticmethod
@@ -119,14 +129,14 @@ class RemarkableOCR(object):
         # paragraph from earlier page or paragraph indentation) or to simply iterate through lines where text size and
         # location does not match an anticipated location and statistics for majority of lines; this is the best method.
 
-        data = RemarkableOCR.calculate_advanced_metadata(data, confidence_threshold=confidence_threshold)
+        data = RemarkableOCR.enrich_advanced_metadata(data, confidence_threshold=confidence_threshold)
         # This fails if multiple tokens on left or right need to be removed: needs to go iteratively through each line.
 
         # filter left
         to_remove_left = [d for d in raw_is_left if d not in is_left]
         to_remove_right = [d for d in raw_is_right if d not in is_right]
         data = [d for d in data if d not in to_remove_left and d not in to_remove_right and not d["is_punct"]]
-        data = RemarkableOCR.calculate_advanced_metadata(data)
+        data = RemarkableOCR.enrich_advanced_metadata(data)
         return data
 
     @staticmethod

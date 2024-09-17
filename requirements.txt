@@ -3,3 +3,7 @@ pytesseract
 
 # for data manipulations
 Pillow
+
+# for numerical work
+numpy
+scikit-image

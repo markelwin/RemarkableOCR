@@ -11,6 +11,7 @@ class colors(object):
     purple = "#7030A0"
     pink = "#E23192"
     black = "#000000"
+    red = "#C00000"
 
 
 class ColorUtils(object):

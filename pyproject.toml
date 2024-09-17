@@ -1,6 +1,6 @@
 [project]
 name = "RemarkableOCR"
-version = "2024.08.0"
+version = "2024.09.0"
 authors = [
     { name="Starlight", email="david@starlight.ai" },
 ]
@@ -20,8 +20,10 @@ keywords = []
 
 dependencies = [
     "pytesseract",
+    "Pillow",
+    "numpy",
+    "scikit-image"
 ]
-
 
 
 [project.urls]
