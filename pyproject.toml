@@ -1,6 +1,6 @@
 [project]
 name = "RemarkableOCR"
-version = "2024.09.0"
+version = "2024.09.2"
 authors = [
     { name="Starlight", email="david@starlight.ai" },
 ]
@@ -16,7 +16,7 @@ classifiers = [
     "License :: OSI Approved :: GNU General Public License v3 (GPLv3)",
     "Operating System :: OS Independent",
 ]
-keywords = []
+keywords = ["remarkable", "ocr", "optical character recognition", "machine learning", "computer vision", "books"]
 
 dependencies = [
     "pytesseract",
@@ -34,9 +34,6 @@ Issues = "https://github.com/markelwin/RemarkableOCR/issues"
 [build-system]
 requires = ["setuptools >= 61.0"]
 build-backend = "setuptools.build_meta"
-
-[tool.setuptools]
-packages = ["remarkable"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

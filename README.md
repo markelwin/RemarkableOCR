@@ -133,23 +133,16 @@ from remarkable import RemarkableOCR
 from PIL import Image
 
 filename = "_db/docs/moonglow.jpg"
-data = RemarkableOCR.ocr(filename,
-                         confidence_threshold=0.50)  # The core RemarkableOCR functionality returns a dictionary of data about each token detected in the image.
-data = RemarkableOCR.filter_assumption_blocks_of_text(data,
-                                                      confidence_threshold=0.40)  # a filter for identifying one solid block of text; like a book page or newspaper without ads in between
-readable = RemarkableOCR.readable_lines(
-    data)  # Convenience function to string sequential words to each line; with new lines at breaks; i.e. readable text
-stats = RemarkableOCR.document_statistics(
-    data)  # Calculate basic statistics of the document itself; i.e., statistics on the pixel size of the font
+data = RemarkableOCR.ocr(filename, confidence_threshold=0.50)  # The core RemarkableOCR functionality returns a dictionary of data about each token detected in the image.
+data = RemarkableOCR.filter_assumption_blocks_of_text(data, confidence_threshold=0.40)  # a filter for identifying one solid block of text; like a book page or newspaper without ads in between
+readable = RemarkableOCR.readable_lines(data)  # Convenience function to string sequential words to each line; with new lines at breaks; i.e. readable text
+stats = RemarkableOCR.document_statistics(data)  # Calculate basic statistics of the document itself; i.e., statistics on the pixel size of the font
 
 im = Image.open(filename)
 statements = ["Neil Armstrong"]
-debug_im = RemarkableOCR.create_debug_image(im,
-                                            data)  # Draws a black bounding box around each token to visually confirm every token was identified correctly.
-found = RemarkableOCR.find_statements(statements,
-                                      data)  # Uses simple regex to identify exact string matches in sequences of tokens, after string normalization
-highlight_im = RemarkableOCR.highlight_statements(im, found, data, config=None,
-                                                  height_px=None)  # Convenience function for highlighting multiple sequences found=Array<[_, start_i, end_i]> using custom config.
+debug_im = RemarkableOCR.create_debug_image(im, data)  # Draws a black bounding box around each token to visually confirm every token was identified correctly.
+found = RemarkableOCR.find_statements(statements, data)  # Uses simple regex to identify exact string matches in sequences of tokens, after string normalization
+highlight_im = RemarkableOCR.highlight_statements(im, found, data, config=None, height_px=None)  # Convenience function for highlighting multiple sequences found=Array<[_, start_i, end_i]> using custom config.
 ```
 
 ### five-minute demo: research features
